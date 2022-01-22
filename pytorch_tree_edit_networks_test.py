@@ -284,6 +284,8 @@ class TestTENs(unittest.TestCase):
                 loss_avg = loss.item()
             else:
                 loss_avg = 0.9 * loss_avg + 0.1 * loss.item()
+
+
             if loss_avg < 1E-3:
                 break
             if (epoch + 1) % 100 == 0:

@@ -40,6 +40,7 @@ _SKIP_LONG_TESTS = True
 
 class TestGENs(unittest.TestCase):
 
+
     def test_to_edits(self):
         # zero inputs should yield an empy script
         A = torch.zeros(3, 3)
@@ -47,41 +48,59 @@ class TestGENs(unittest.TestCase):
         Epsilon = torch.zeros(3, 3)
         script = gen.to_edits(A, delta, Epsilon)
         self.assertEqual(0, len(script))
+        print('passed zero edit')
+
         # if we delete edges that are not present, this should remain
         Epsilon[0, 1] = -1.
         script = gen.to_edits(A, delta, Epsilon)
         self.assertEqual(0, len(script))
+
+        print('passed deletion of non-existent edge')
+
         # if that edge was present, we should get an edge deletion
         A[0, 1] = 1.
         script = gen.to_edits(A, delta, Epsilon)
         expected_script = [ge.EdgeDeletion(0, 1)]
         self.assertEqual(expected_script, script)
+
+        print('passed simple edge deletion')
         # A positive edge edit score should yield edge insertions
         Epsilon[1, 2] = 1.
         script = gen.to_edits(A, delta, Epsilon)
         expected_script.append(ge.EdgeInsertion(1, 2))
         self.assertEqual(expected_script, script)
+
+        print('passed simple edge insertion')
         # If we delete a node to which we have a positive edge edit score,
         # the edge should not be inserted
         delta[2] = -1.
         script = gen.to_edits(A, delta, Epsilon)
         expected_script[1] = ge.NodeDeletion(2)
         self.assertEqual(expected_script, script)
+
+        print('passed treatment of node deletion before edge insertion')
         # check node insertions as well
         delta[1] = +1.
         script = gen.to_edits(A, delta, Epsilon)
         expected_script.insert(1, ge.NodeInsertion(1, 0.))
         self.assertEqual(expected_script, script)
+
+        print('passed node insertion before edges')
         # ensure that node insertions occur in ascending order
         delta[0] = +1.
         script = gen.to_edits(A, delta, Epsilon)
         expected_script.insert(1, ge.NodeInsertion(0, 0.))
         self.assertEqual(expected_script, script)
-        # and that node deletions occur in descending order
+
+        print('passed node insertion order')
+
+    # and that node deletions occur in descending order
         delta[1] = -1.
         script = gen.to_edits(A, delta, Epsilon)
         expected_script = [ge.NodeInsertion(0, 0.), ge.NodeDeletion(2), ge.NodeDeletion(1)]
         self.assertEqual(expected_script, script)
+
+        print('passed node deletion order')
 
     def test_gen_loss_crossent(self):
         loss_fun = gen.GEN_loss_crossent()
@@ -354,37 +373,40 @@ class TestGENs(unittest.TestCase):
         # (rule 1) or smaller than 3 (rule 3).
         f = 100.
         # put everything to zero first
-        net._layers[0]._U.weight[:, :] = 0.
-        net._layers[0]._V.weight[:, :] = 0.
-        net._layers[0]._W.weight[:, :] = 0.
-        net._layers[0]._U.bias[:] = 0.
-        net._layers[0]._V.bias[:] = 0.
-        net._layers[0]._W.bias[:] = 0.
-        net._edge_u.weight[:] = 0.
-        net._edge_u.bias[:] = 0.
-        net._edge_v.weight[:] = 0.
-        net._edge_v.bias[:] = 0.
-        net._edge_w.weight[:] = 0.
-        net._edge_w.bias[:] = 0.
-        net._node.weight[:, :] = 0.
-        net._node.bias[:] = 0.
+        with torch.no_grad():
+            net._layers[0]._U.weight[:, :] = 0.
+            net._layers[0]._V.weight[:, :] = 0.
+            net._layers[0]._W.weight[:, :] = 0.
+            net._layers[0]._U.bias[:] = 0.
+            net._layers[0]._V.bias[:] = 0.
+            net._layers[0]._W.bias[:] = 0.
+            net._edge_u.weight[:] = 0.
+            net._edge_u.bias[:] = 0.
+            net._edge_v.weight[:] = 0.
+            net._edge_v.bias[:] = 0.
+            net._edge_w.weight[:] = 0.
+            net._edge_w.bias[:] = 0.
+            net._node.weight[:, :] = 0.
+            net._node.bias[:] = 0.
         # rule 1 representation: Node deletion if degree larger 3
         # can be done by doing -sigmoid(sum_incoming 1 - 3.5)
-        net._layers[0]._U.weight[n, :] = 1. / f
-        net._layers[0]._U.bias[n] = -3.5 / f
-        net._node.weight[0,n] = -2. * f
+        with torch.no_grad():
+            net._layers[0]._U.weight[n, :] = 1. / f
+            net._layers[0]._U.bias[n] = -3.5 / f
+            net._node.weight[0,n] = -2. * f
         # rule 2 representation: Edge insertion if two nodes share the
         # same neighbor.
         # Can be done by first representing the set of neighbors as
         # sigmoid(sum_incoming index) and then inferring the edges as
         # the inner product of those vectors
-        net._layers[0]._U.weight[:n, :] = torch.eye(n)
-        net._edge_w.weight[:] = 1.
-        # rule 3 representation: Node insertion if degree smaller 3.
-        # can be done by doing +sigmoid(-sum_incoming 1 + 2.5)
-        net._layers[0]._U.weight[n+1, :] = -1. / f
-        net._layers[0]._U.bias[n+1] = +2.5 / f
-        net._node.weight[0,n+1] = 2. * f
+        with torch.no_grad():
+            net._layers[0]._U.weight[:n, :] = torch.eye(n)
+            net._edge_w.weight[:] = 1.
+            # rule 3 representation: Node insertion if degree smaller 3.
+            # can be done by doing +sigmoid(-sum_incoming 1 + 2.5)
+            net._layers[0]._U.weight[n+1, :] = -1. / f
+            net._layers[0]._U.bias[n+1] = +2.5 / f
+            net._node.weight[0,n+1] = 2. * f
 
         # test the network
         A = np.array([[0, 1, 1, 0, 0], [1, 0, 0, 0, 0], [1, 0, 0, 0, 0], [0, 0, 0, 0, 1], [0, 0, 0, 1, 0]])
