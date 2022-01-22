@@ -44,10 +44,11 @@ class DynSysTEN(ten.TEN):
     """
     def __init__(self):
         super(DynSysTEN, self).__init__(num_layers = 1, alphabet = ['a', 'b'], dim_hid = 1, dim_in_extra = 3, dim_memory = 1)
-        self._memory.weight[:, :] = 0.
-        self._memory.weight[0, 1] = 1.
-        self._memory.weight[0, -1] = 1.
-        self._memory.bias[:] = 0.
+        with torch.no_grad():
+            self._memory.weight[:, :] = 0.
+            self._memory.weight[0, 1] = 1.
+            self._memory.weight[0, -1] = 1.
+            self._memory.bias[:] = 0.
 
     def forward(self, nodes, adj, X):
         # set up output arrays
