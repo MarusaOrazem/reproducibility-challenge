@@ -371,6 +371,44 @@ class TestBoolean(unittest.TestCase):
             self.assertEqual(nodes_exp, nodes_act)
             self.assertEqual(adj_exp, adj_act)
 
+    def test_unique_dataset(self):
+        N = 10
+        test_set, unique_As = peano_addition.create_test_set(N)
+
+        self.assertEqual(len(test_set), N)
+
+        seen_data = []
+        for time_series in test_set:
+            As = [a for n,a in time_series]
+            if seen_data == []:
+                seen_data = As
+                continue
+            for i, A in enumerate(As):
+                for j, seen in enumerate(seen_data):
+                    if len(seen) == len(A):
+                        # they are of equal sizes, we can actually compare them
+                        if (seen == A) and i + 1 != len(As):
+                            self.assertFalse("", "Test set is not unique.")
+                        elif (seen == A) and (i + 1 == len(As)):
+                            pass
+                        else:
+                            seen_data.append(A)
+
+        self.assertTrue(True, "Test set is unique.")
+
+        for i in range(100):
+            time_series = peano_addition.generate_unique_time_series(unique_As)
+            As = [a for n,a in time_series]
+            for i, A in enumerate(As):
+                for j, seen in enumerate(seen_data):
+                    if len(seen) == len(A):
+                        # they are of equal sizes, we can actually compare them
+                        if (seen == A) and i + 1 != len(As):
+                            self.assertFalse("", "Test set is not unique.")
+                        elif (seen == A) and (i + 1 == len(As)):
+                            pass
+        self.assertTrue(True, "Train set is unique.")
+
 
 if __name__ == '__main__':
     unittest.main()

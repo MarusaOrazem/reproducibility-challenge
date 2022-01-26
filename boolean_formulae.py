@@ -593,3 +593,84 @@ def boolean_alignment(nodes, adj, next_nodes, next_adj):
         i += 1
     # return
     return alignment
+
+def create_test_set(N, generator=generate_time_series):
+    '''
+    Creates unique test set, where none of the graphs, in time series that are generated, are the same
+    Parameters
+    ----------
+    N, int, number of sets to create
+    n, number of nodes in the initial graph
+    generator, function that generates series (from random matrix, erdos renyi,...
+    p, probability for generator
+    n_max
+    t_max
+
+    Returns: list of sets of generated time series, list of unique As that appear in all time series
+    -------
+
+    '''
+    first = generator()
+    test_set = [first]
+    unique_As = [a for n,a in first]
+    while len(test_set) < N:
+        #print(len(test_set))
+        # print(len(test_set))
+        time_series = generator()
+        # i counter for the graphs, so we will know which series to add.
+        As = [a for n,a in time_series]
+        stop = False
+        for i, A in enumerate(As):
+            #print("-------")
+            #print(x)
+            for u_A in unique_As:
+                if stop:
+                    #print("stop")
+                    continue
+                if len(A) == len(u_A):
+                    #print("shape")
+                    if (A != u_A) and (i +1 == len(As)):
+                        test_set.append(time_series)
+                        unique_As.append(A)
+                        stop = True
+                    elif (A == u_A):
+                        #print("SAME")
+                        cuted_time_series = time_series[:i+1]
+                        test_set.append(cuted_time_series)
+                        stop = True
+                    elif (A != u_A):
+                        #print("DIFF")
+                        unique_As.append(A)
+                else:
+                    # diff shape, they are different
+                    #print("----DIFF")
+                    unique_As.append(A)
+                    if i+1 == len(As):
+                        stop = True
+                        test_set.append(time_series)
+
+
+    return test_set, unique_As
+
+def generate_unique_time_series( unique_As, generator=generate_time_series):
+    train_set = []
+    while len(train_set) < 1:
+        time_series = generator()
+        # i counter for the graphs, so we will know which series to add.
+        As = [a for n,a in time_series]
+        for i, A in enumerate(As):
+            for u_A in unique_As:
+                if len(A) == len(u_A):
+                    if (A != u_A) and (i + 1 == len(As)):
+                        return time_series
+                    if (A == u_A):
+                        if i+1 == len(As):
+                            return time_series
+                        cut_time_series = time_series[:i+1]
+                        return cut_time_series
+
+
+    return train_set
+
+#a = create_test_set(10)
+#generate_unique_time_series(a[1])
