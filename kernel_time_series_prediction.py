@@ -19,7 +19,7 @@ Edit Distance Spaces. Journal of Educational Datamining.
 URL: https://jedm.educationaldatamining.org/index.php/JEDM/article/view/158
 
 """
-
+from tqdm import tqdm
 # Copyright (C) 2019-2021
 # Benjamin Paaßen
 # The University of Sydney
@@ -159,10 +159,11 @@ class KernelTreePredictor(BaseEstimator):
             self
 
         """
+
         # prepare _X and _Y
         self._X = []
         self._Y = []
-        for seq in time_series:
+        for seq in tqdm(time_series):
             if len(seq) == 0:
                 continue
             for t in range(len(seq)-1):
@@ -173,14 +174,19 @@ class KernelTreePredictor(BaseEstimator):
         # store the original data as well
         self._time_series = time_series
         # compute all pairwise edit distance values
+        print('computing pairwis distances')
         D = pairwise_distances_symmetric(self._X, ted.ted)
         # adjust psi if it is not set
         if self.psi is None:
             self.psi = np.mean(D) * 0.5
         # transform to similarity matrix
+        print('transforming to K')
+
         K = np.exp(-0.5 * D ** 2 / self.psi ** 2)
         # invert
+        print('inverting K')
         self._Kinv = np.linalg.inv(K + self.sigma ** 2 * np.eye(len(K)))
+        print('done.')
 
     def predict(self, nodes, adj):
         """ Predicts the next time step for a given input tree, both in
