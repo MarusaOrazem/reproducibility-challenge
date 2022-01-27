@@ -1,0 +1,6 @@
+node_ins_recall	node_ins_precision	node_del_recall	node_del_precision	edge_ins_recall	edge_ins_precision	edge_del_recall	edge_del_precision
+0.99919	1	1	0.999757	0.811667	0.938174	1	0.985423
+1	0.99988	1	0.997129	0.998565	0.999418	1	0.999043
+1	0.98815	1	0.997386	0.994017	0.994253	1	0.999049
+0.99992	0.999863	1	0.985441	0.655438	0.977341	1	0.965517
+1	1	1	1	0.998544	0.99909	1	1
