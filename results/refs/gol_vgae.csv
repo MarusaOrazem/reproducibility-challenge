@@ -1,0 +1,2 @@
+node_ins_recall;node_ins_precision;node_del_recall;node_del_precision;edge_ins_recall;edge_ins_precision;edge_del_recall;edge_del_precision
+0.27;1;1;0.03;1;1;1;1
