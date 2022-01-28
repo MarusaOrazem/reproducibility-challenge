@@ -7,6 +7,11 @@ library(viridis)
 install.packages('ggh4x')
 library(ggh4x)
 
+devtools::install_github("zeehio/facetscales")
+library(g)
+library(facetscales)
+
+
 models1 <- c('vgae', 'genx', 'gen')
 models2 <- c('VGAE', 'GEN_crossent', 'GEN')
 models3 <- c('Variational Graph Auto Encoders', 'GEN-XE', 'GEN-Hinge')
